@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { signupAsStudent, signupAsTutor } from "./actions"
+import { signupAsStudent, signupAsTutor } from "@/lib/auth"
 import { createClient } from "@/utils/supabase/client"
 
 export default function SignupPage() {

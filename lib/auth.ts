@@ -54,6 +54,27 @@ export async function assignRole(role: Role, id: string) {
 
 }
 
+export async function signupAsStudent(formData: FormData) {
+    const data = await signup(formData)
+
+
+    if (data.user) {
+        await assignRole(Role.STUDENT, data.user.id)
+    }
+
+    return data
+    }
+
+export async function signupAsTutor(formData: FormData) {
+    const data = await signup(formData)
+    if (data.user) {
+        await assignRole(Role.TUTOR, data.user.id)
+    }
+
+    return data
+
+}
+
 export async function getUserRole() {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
