@@ -1,54 +1,41 @@
 "use client"
 import { useEffect, useState } from "react";
 import { redirect } from "next/navigation";
-import { getUser as getUserAuth, getUserRole } from "@/lib/auth";
 import { createClient } from "@/utils/supabase/client";
-
-// shadcn/ui dropdown menu components
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/hooks/useSession";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import { useFetchProfile } from "@/hooks/useFetchProfile";
 
 export default function Home() {
-  const [email, setEmail] = useState<string | null>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
   const supabase = createClient();
+  const queryClient = useQueryClient();
+  const { data: session, isLoading: sessionLoading } = useSession();
+  const { data: profile, isLoading: profileLoading } = useFetchProfile();
+  
+  const loading = sessionLoading || profileLoading;
 
-  useEffect(() => {
-    async function getUser() {
-      setLoading(true);
-      const user = await getUserAuth();
-      if (user && user.email) {
-        setEmail(user.email);
-        const role = await getUserRole();
-        if (role) {
-          setRole(role);
-        }
-      } else {
-        setEmail(null);
-        setRole(null);
-      }
-      setLoading(false);
-    }
-    getUser();
-  }, []);
+  const email = profile?.email || profile?.id || session?.user?.email || null;
+  const role = profile?.role || null;
 
   const onLoginClick = () => {
     redirect('/login');
   };
 
   const handleLogout = async () => {
-    try {
-      await supabase.auth.signOut();
-      setEmail(null);
-      setRole(null);
-    } catch (e) {
-      // fail silently
-    }
+    await supabase.auth.signOut();
+    // drop the cache too, just to be safe
+    queryClient.removeQueries({ queryKey: ["profile"] });
+    queryClient.removeQueries({ queryKey: ["session"] });
+    // send them back to login
+    router.refresh();
   };
 
   return (

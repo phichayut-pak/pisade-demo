@@ -1,27 +1,22 @@
 "use client"
-import { useEffect } from "react"
+
 import { useRouter } from "next/navigation"
 import { login } from '@/lib/auth'
 import { createClient } from '@/utils/supabase/client'
-import { useUser } from '@/context/UserContext'
+import { useFetchProfile } from "@/hooks/useFetchProfile"
+
 export default function LoginPage() {
     const router = useRouter();
     const supabase = createClient();
-    const { user } = useUser();
+    const { data: profile, isLoading: loading } = useFetchProfile();
 
-    useEffect(() => {
-        async function getUser() {
-            try {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    router.push('/');
-                }
-            } catch (error) {
-                console.error('Error getting user:', error);
-            }
+    // If already logged in, redirect to home
+    if (profile && profile.email) {
+        if (typeof window !== "undefined") {
+            router.push('/');
         }
-        getUser();
-    }, []);
+        return null;
+    }
 
     // Google login handler
     const handleGoogleLogin = async () => {
@@ -35,6 +30,10 @@ export default function LoginPage() {
             console.error('OAuth error:', error.message)
         }
     };
+
+    if (loading) {
+        return <div className="text-center mt-16 text-lg text-gray-500">Loading...</div>;
+    }
 
     return (
         <div className="max-w-sm mx-auto mt-16 p-6 bg-white rounded shadow space-y-4">

@@ -54,22 +54,3 @@ export async function signupWithRole(formData: FormData, role: Role) {
 
     return data
 }
-
-export async function getUserRole() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-        const { data, error } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (error) {
-            throw new Error(error.message || "Failed to fetch user")
-        }
-        return data.role
-    }
-    return null
-}
-
-export async function getUser() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    return user
-}
