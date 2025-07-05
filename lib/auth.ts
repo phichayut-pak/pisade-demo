@@ -25,7 +25,7 @@ export async function login(formData: FormData) {
     redirect('/')
 }
 
-export async function signup(formData: FormData) {
+export async function signupWithRole(formData: FormData, role: Role) {
     const supabase = await createClient()
 
     // type-casting here for convenience
@@ -41,38 +41,18 @@ export async function signup(formData: FormData) {
         throw new Error(error.message || "Signup failed")
     }
 
-    return data
-
-}
-
-export async function assignRole(role: Role, id: string) {
-    const supabase = await createClient()
-
-    const { data, error } = await supabase.from('profiles').update({ role: role }).eq('id', id)
-
-    return data
-
-}
-
-export async function signupAsStudent(formData: FormData) {
-    const data = await signup(formData)
-
-
     if (data.user) {
-        await assignRole(Role.STUDENT, data.user.id)
+        const { error: roleError } = await supabase
+            .from('profiles')
+            .update({ role: role })
+            .eq('id', data.user.id)
+        
+        if (roleError) {
+            throw new Error(roleError.message || "Failed to assign role")
+        }
     }
 
     return data
-    }
-
-export async function signupAsTutor(formData: FormData) {
-    const data = await signup(formData)
-    if (data.user) {
-        await assignRole(Role.TUTOR, data.user.id)
-    }
-
-    return data
-
 }
 
 export async function getUserRole() {

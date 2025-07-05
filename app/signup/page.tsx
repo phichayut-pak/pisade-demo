@@ -2,8 +2,9 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-import { signupAsStudent, signupAsTutor } from "@/lib/auth"
+import { signupWithRole } from "@/lib/auth"
 import { createClient } from "@/utils/supabase/client"
+import { Role } from "@/types/role"
 
 export default function SignupPage() {
   const router = useRouter();
@@ -39,8 +40,7 @@ export default function SignupPage() {
     formData.append("password", studentPassword);
 
     try {
-      // @ts-ignore
-      await signupAsStudent(formData);
+      await signupWithRole(formData, Role.STUDENT);
       router.push("/");
     } catch (err: any) {
       setStudentError("Sign up failed");
@@ -65,8 +65,7 @@ export default function SignupPage() {
     formData.append("password", tutorPassword);
 
     try {
-      // @ts-ignore
-      await signupAsTutor(formData);
+      await signupWithRole(formData, Role.TUTOR);
       router.push("/");
     } catch (err: any) {
       setTutorError("Sign up failed");
