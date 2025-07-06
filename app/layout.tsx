@@ -30,13 +30,13 @@ export default async function RootLayout({children,}: Readonly<{ children: React
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
 
-        {/* <ReduxProvider> */}
-        <ReactQueryProvider>
-          <UserProvider>
-            {children}
-          </UserProvider>
-        </ReactQueryProvider>
-        {/* </ReduxProvider> */}
+        <ReduxProvider>
+          <ReactQueryProvider>
+            <UserProvider>
+              {children}
+            </UserProvider>
+          </ReactQueryProvider>
+        </ReduxProvider>
 
       </body>
     </html>

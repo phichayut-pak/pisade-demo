@@ -17,7 +17,7 @@ export interface Profile {
     email: string;
 }
 
-export function useFetchProfile(): UseQueryResult<Profile, Error> {
+export function useFetchProfile(opts: { enabled?: boolean } = {}): UseQueryResult<Profile, Error> {
     const supabase = createClient()
 
     return useQuery<Profile, Error>({
@@ -41,6 +41,7 @@ export function useFetchProfile(): UseQueryResult<Profile, Error> {
         
             })
         },
-        staleTime: 5 * 60 * 1000, // cache for 5 minutes
+        staleTime: 5 * 60 * 1000, // cache for 5 minutes,
+        enabled: opts.enabled,
     })
 }

@@ -4,18 +4,34 @@ import { useRouter } from "next/navigation"
 import { login } from '@/lib/auth'
 import { createClient } from '@/utils/supabase/client'
 import { useFetchProfile } from "@/hooks/useFetchProfile"
+import { useDispatch } from "react-redux";
+import { clearProfile, setProfile } from "@/redux/profile";
 
 export default function LoginPage() {
     const router = useRouter();
     const supabase = createClient();
-    const { data: profile, isLoading: loading } = useFetchProfile();
+    const dispatch = useDispatch();
+    const { data: profile, refetch: refetchProfile } = useFetchProfile({ enabled: false });
 
-    // If already logged in, redirect to home
-    if (profile && profile.email) {
-        if (typeof window !== "undefined") {
-            router.push('/');
+    // when user clicks login, also update the redux profile
+    const handleLogin = async (formData: FormData) => {
+
+        if(profile) {
+            router.push('/')
+            return
         }
-        return null;
+        const result = await login(formData)
+        if (result.error) {
+            console.error('Login error:', result.error)
+        }
+        if (result.user) {
+            await refetchProfile();
+            if (profile) {
+                dispatch(setProfile(profile));
+            }
+
+        }
+        router.push('/')
     }
 
     // Google login handler
@@ -30,10 +46,6 @@ export default function LoginPage() {
             console.error('OAuth error:', error.message)
         }
     };
-
-    if (loading) {
-        return <div className="text-center mt-16 text-lg text-gray-500">Loading...</div>;
-    }
 
     return (
         <div className="max-w-sm mx-auto mt-16 p-6 bg-white rounded shadow space-y-4">
@@ -70,7 +82,7 @@ export default function LoginPage() {
             </div>
             <div className="flex space-x-2">
             <button
-                formAction={login}
+                formAction={handleLogin}
                 className="cursor-pointer flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
             >
                 Log in 

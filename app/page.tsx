@@ -4,25 +4,26 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useSession } from "@/hooks/useSession";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/redux/store";
+import { clearProfile } from "@/redux/profile";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { useFetchProfile } from "@/hooks/useFetchProfile";
 
 export default function Home() {
   const router = useRouter();
   const supabase = createClient();
   const queryClient = useQueryClient();
-  const { data: session, isLoading: sessionLoading } = useSession();
-  const { data: profile, isLoading: profileLoading } = useFetchProfile();
+  const dispatch = useDispatch();
   
-  const loading = sessionLoading || profileLoading;
-
-  const email = profile?.email || profile?.id || session?.user?.email || null;
+  // Get profile data from Redux store
+  const { profile, isLoading } = useSelector((state: RootState) => state.profile);
+  
+  const email = profile?.email || profile?.id || null;
   const role = profile?.role || null;
 
   const onLoginClick = () => {
@@ -31,6 +32,8 @@ export default function Home() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    // Clear Redux state
+    dispatch(clearProfile());
     // drop the cache too, just to be safe
     queryClient.removeQueries({ queryKey: ["profile"] });
     queryClient.removeQueries({ queryKey: ["session"] });
@@ -64,7 +67,7 @@ export default function Home() {
       )}
 
       <div className="flex flex-col gap-3 items-center justify-center w-1/2">
-        {loading ? (
+        {isLoading ? (
           <div className="text-lg text-gray-500">Loading...</div>
         ) : email && role ? (
           <div className="text-3xl font-bold text-black">
